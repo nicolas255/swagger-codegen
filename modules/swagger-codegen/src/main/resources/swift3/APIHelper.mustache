@@ -51,12 +51,23 @@ class APIHelper {
 
 
     static func mapValuesToQueryItems(values: [String:Any?]) -> [URLQueryItem]? {
-        let returnValues = values
-            .filter { $0.1 != nil }
-            .map { (item: (_key: String, _value: Any?)) -> URLQueryItem in
-                URLQueryItem(name: item._key, value:"\(item._value!)")
+        var returnValues = [URLQueryItem]()
+        for (key, value) in values {
+            guard let value = value else { continue }
+
+            if let dictionary = value as? [String: Any] {
+                for (subKey, subValue) in dictionary {
+                    returnValues.append(URLQueryItem(name: "\(key)[\(subKey)]", value:"\(subValue)"))
+                }
+            } else if let array = value as? [Any] {
+                for subValue in array {
+                    returnValues.append(URLQueryItem(name: "\(key)[]", value:"\(subValue)"))
+                }
+            } else {
+                returnValues.append(URLQueryItem(name: key, value:"\(value)"))
             }
-        if returnValues.count == 0 {
+        }
+        if returnValues.isEmpty {
             return nil
         }
         return returnValues
